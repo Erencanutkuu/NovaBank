@@ -1,4 +1,4 @@
-namespace NovaBank.Api.ExceptionHandlers;
+namespace NovaBank.Application.Constants;
 
 public static class ErrorCodes
 {
