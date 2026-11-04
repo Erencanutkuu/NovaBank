@@ -27,3 +27,6 @@ app.MapControllers();
 
 app.MapHealthChecks("/health");
 app.Run();
+
+// Entegrasyon testlerinin (WebApplicationFactory<Program>) uygulamayı başlatabilmesi için Program'ı görünür yapar.
+public partial class Program { }
