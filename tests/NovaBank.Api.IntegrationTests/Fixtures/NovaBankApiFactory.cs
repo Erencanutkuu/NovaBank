@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,10 @@ public sealed class NovaBankApiFactory : WebApplicationFactory<Program>
     {
         // Test assembly'sindeki controller'lar varsayılan olarak keşfedilmez; burada eklenir.
         builder.ConfigureServices(services =>
-            services.AddControllers().AddApplicationPart(typeof(TestResponsesController).Assembly));
+        {
+            services.AddControllers().AddApplicationPart(typeof(TestResponsesController).Assembly);
+            services.AddScoped<IValidator<TestRequest>, TestRequestValidator>();
+            services.AddSingleton<TestWorkCounter>();
+        });
     }
 }
