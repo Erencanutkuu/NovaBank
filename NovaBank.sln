@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NovaBank.Api.IntegrationTes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NovaBank.Application.Tests", "tests\NovaBank.Application.Tests\NovaBank.Application.Tests.csproj", "{60FE3DEE-A8D6-4073-A691-CFF625190992}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NovaBank.Domain.Tests", "tests\NovaBank.Domain.Tests\NovaBank.Domain.Tests.csproj", "{351E0039-FAFD-48E0-9A41-29A76ED930CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{60FE3DEE-A8D6-4073-A691-CFF625190992}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60FE3DEE-A8D6-4073-A691-CFF625190992}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60FE3DEE-A8D6-4073-A691-CFF625190992}.Release|Any CPU.Build.0 = Release|Any CPU
+		{351E0039-FAFD-48E0-9A41-29A76ED930CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{351E0039-FAFD-48E0-9A41-29A76ED930CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{351E0039-FAFD-48E0-9A41-29A76ED930CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{351E0039-FAFD-48E0-9A41-29A76ED930CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{79260805-1FA6-4594-AE2C-5870E3757E5A} = {F8C19F18-B3D0-4D7A-B791-5690946AF9A0}
@@ -60,5 +66,6 @@ Global
 		{B875121B-AA24-4394-8952-7982A5071E6C} = {F8C19F18-B3D0-4D7A-B791-5690946AF9A0}
 		{36F7953F-7F37-42C5-9DE1-0340B79FB253} = {E6A9508D-3650-455D-B152-1ECA8FB8E718}
 		{60FE3DEE-A8D6-4073-A691-CFF625190992} = {E6A9508D-3650-455D-B152-1ECA8FB8E718}
+		{351E0039-FAFD-48E0-9A41-29A76ED930CC} = {E6A9508D-3650-455D-B152-1ECA8FB8E718}
 	EndGlobalSection
 EndGlobal
