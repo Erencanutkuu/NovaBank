@@ -37,7 +37,8 @@ namespace NovaBank.Infrastructure.Persistence.Migrations
                     balance = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
                     status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     opened_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    closed_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                    closed_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {

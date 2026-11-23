@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NovaBank.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NovaBankDbContext))]
-    [Migration("20261123173604_AddCustomersAndAccounts")]
+    [Migration("20261123173754_AddCustomersAndAccounts")]
     partial class AddCustomersAndAccounts
     {
         /// <inheritdoc />
@@ -65,6 +65,12 @@ namespace NovaBank.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("status");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 
