@@ -13,6 +13,10 @@ public sealed class TestResponsesController : ApiControllerBase
     public IActionResult BusinessError() =>
         throw new BusinessException(ErrorCodes.InsufficientBalance, "Bakiye yetersiz.");
 
+    [HttpGet("business-error/{code}")]
+    public IActionResult BusinessErrorWithCode(string code) =>
+        throw new BusinessException(code, "Test mesajı.");
+
     [HttpGet("unexpected-error")]
     public IActionResult UnexpectedError() =>
         throw new InvalidOperationException("gizli-ic-ayrinti");
