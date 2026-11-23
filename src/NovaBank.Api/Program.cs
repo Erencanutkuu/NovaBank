@@ -1,11 +1,14 @@
 using NovaBank.Api.ExceptionHandlers;
+using NovaBank.Api.Extensions;
+using NovaBank.Application;
 using NovaBank.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddApiControllers();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>(); // Hata yanıtını oluşturacak handler'ı kaydeder.
 builder.Services.AddProblemDetails(); // Standart hata yanıtı desteğini ekler.
+builder.Services.AddApplication(); // Validator'ları kaydeder.
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHealthChecks();
 

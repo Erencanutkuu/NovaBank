@@ -1,5 +1,7 @@
+using FluentValidation; //doğrulama hataları için gerekli namespace
 using Microsoft.AspNetCore.Diagnostics; //exception yakalama ve işleme için gerekli namespace
 using Microsoft.AspNetCore.Mvc; //problem details için gerekli namespace
+using NovaBank.Api.Contracts.Responses; //doğrulama hata gövdesi için gerekli namespace
 using NovaBank.Application.Constants; //hata kodları için gerekli namespace
 using NovaBank.Application.Exceptions; //iş hataları için gerekli namespace
 namespace NovaBank.Api.ExceptionHandlers;
@@ -12,6 +14,24 @@ public sealed class GlobalExceptionHandler : IExceptionHandler  //http hata dön
         CancellationToken cancellationToken)
     {
         // .NET 8'de exception ayrıntılarını UseExceptionHandler middleware'i loglar.
+        // Doğrulama hataları alan bazlı gövdeyle döner.
+        if (exception is ValidationException validationException)
+        {
+            var validationProblem = ValidationErrorResponse.Create(
+                httpContext,
+                validationException.Errors.Select(error => (error.PropertyName, error.ErrorMessage)));
+
+            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+
+            await httpContext.Response.WriteAsJsonAsync(
+                validationProblem,
+                options: null,
+                contentType: "application/problem+json",
+                cancellationToken: cancellationToken);
+
+            return true;
+        }
+
         var statusCode = StatusCodes.Status500InternalServerError;
         var title = "Beklenmeyen bir hata oluştu.";
         var errorCode = ErrorCodes.UnexpectedError;
