@@ -9,7 +9,9 @@
 | NovaBank.Application | Kullanım senaryoları, servis arayüzleri ve DTO'lar. Domain'e bağımlıdır. |
 | NovaBank.Infrastructure | Veritabanı erişimi ve dış servis entegrasyonları. Application ve Domain'e bağımlıdır. |
 
-API, Application ve Infrastructure projelerine referans verir. PostgreSQL erişimi EF Core ile Infrastructure katmanında yapılandırılmıştır. Henüz iş varlığı veya iş endpoint'i eklenmemiştir.
+API, Application ve Infrastructure projelerine referans verir. PostgreSQL erişimi EF Core ile Infrastructure katmanında yapılandırılmıştır. Müşteri ve hesap endpoint'leri vardır; para hareketi ve login henüz yoktur.
+
+> **Uyarı:** Kimlik doğrulama olmadığı için API yalnızca yerelde çalıştırılmalı, internete açılmamalıdır.
 
 ## EF Core ve migration nedir?
 
@@ -17,7 +19,7 @@ API, Application ve Infrastructure projelerine referans verir. PostgreSQL erişi
 
 **Migration**, C# modelindeki şema değişikliklerini veritabanına uygulayan sürümlü bir dosyadır. `Up` değişikliği uygular, `Down` geri alır. Migration oluşturmak dosya üretir; `database update` bu dosyaları veritabanında çalıştırır.
 
-İlk migration `InitialCreate`, `src/NovaBank.Infrastructure/Persistence/Migrations` altındadır. Henüz entity olmadığı için `Up` ve `Down` boştur; uygulandığında EF Core yalnızca `__EFMigrationsHistory` tablosuna başlangıç kaydını ekler. Müşteri ve hesap gibi modeller eklendiğinde yeni migration oluşturulmalıdır.
+İlk migration `InitialCreate`, `src/NovaBank.Infrastructure/Persistence/Migrations` altındadır. O sırada entity olmadığı için `Up` ve `Down` boştur. `AddCustomersAndAccounts` ise `customers` ve `accounts` tablolarını oluşturur.
 
 ## Yerel kurulum
 
@@ -50,12 +52,29 @@ Development dışındaki ortamlarda `ConnectionStrings__NovaBank` veya eşdeğer
 | `/health`, `/health/live` | API ayakta mı? Veritabanını kontrol etmez. |
 | `/health/ready` | PostgreSQL'e erişilebiliyor mu? Erişilemezse `503`. |
 | `/swagger/index.html` | Yalnızca Development ortamında. |
+| `POST /api/customers` | Müşteri oluşturur: `firstName`, `lastName`, `email`. |
+| `GET /api/customers/{id}` | Müşteriyi getirir. |
+| `POST /api/customers/{customerId}/accounts` | Hesap açar: `currency` = `TRY`, `USD` veya `EUR`. |
+| `GET /api/customers/{customerId}/accounts` | Müşterinin hesaplarını listeler. |
+| `GET /api/accounts/{id}` | Hesabı getirir. |
+| `POST /api/accounts/{id}/close` | Hesabı kapatır; geri açılamaz. |
 
 ## Cevap ve hata biçimi
 
 - Başarı: `{ data, message?, traceId }`. Controller'lar `ApiControllerBase` yardımcılarını kullanır.
 - Hata: `ProblemDetails` + `errorCode` + `traceId`.
 - Doğrulama hatası: `400`, `errorCode: "7000"` ve `errors: { "alan": ["mesaj"] }`. Bozuk JSON ve yanlış tipli alanlar da aynı gövdeyle döner.
+
+| Kod | HTTP | Anlamı |
+| --- | --- | --- |
+| `7000` | 400 | Doğrulama hatası |
+| `7232` | 404 | Müşteri bulunamadı |
+| `7233` | 409 | E-posta kayıtlı |
+| `7556` | 409 | Hesap kapalı |
+| `7557` | 404 | Hesap bulunamadı |
+| `9000` | 500 | Beklenmeyen hata |
+
+IBAN'lar kurgusal `99999` banka koduyla üretilir; gerçek bir bankaya ait değildir.
 
 Yeni validator'ı Application'a `AbstractValidator<T>` olarak ekle; `AddApplication` otomatik kaydeder. Action içinde iş işleminden önce çağır:
 
