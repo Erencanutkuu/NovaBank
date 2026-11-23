@@ -11,7 +11,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>(); // Hata yanıtı
 builder.Services.AddProblemDetails(); // Standart hata yanıtı desteğini ekler.
 builder.Services.AddApplication(); // Validator'ları kaydeder.
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddHealthChecks();
+builder.Services.AddApiHealthChecks();
 
 // TODO: Swagger ve health check servis kayıtlarını burada ekle.
 builder.Services.AddEndpointsApiExplorer();
@@ -30,7 +30,7 @@ if (app.Environment.IsDevelopment())  //microsoft kullanım şekli
 
 app.MapControllers();
 
-app.MapHealthChecks("/health");
+app.MapApiHealthChecks();
 app.Run();
 
 // Entegrasyon testlerinin (WebApplicationFactory<Program>) uygulamayı başlatabilmesi için Program'ı görünür yapar.
