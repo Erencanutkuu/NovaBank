@@ -47,8 +47,8 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
 
             statusCode = errorCode switch   // erorrcode bakar bi statuscode seçer
             {
-                ErrorCodes.UserNotFound => StatusCodes.Status404NotFound,  // => 404  olayı bu olay gerçeklesirse sagındakini seç demek
-                ErrorCodes.InsufficientBalance or ErrorCodes.AccountClosed =>
+                ErrorCodes.UserNotFound or ErrorCodes.CustomerNotFound => StatusCodes.Status404NotFound,  // => 404  olayı bu olay gerçeklesirse sagındakini seç demek
+                ErrorCodes.InsufficientBalance or ErrorCodes.AccountClosed or ErrorCodes.EmailAlreadyExists =>
                     StatusCodes.Status409Conflict,
                 _ => StatusCodes.Status400BadRequest
             };
