@@ -5,3 +5,6 @@
 *.user
 *.suo
 .DS_Store
+
+# Claude için yerel proje rehberi
+CLAUDE_PROJECT_HANDOFF.md
