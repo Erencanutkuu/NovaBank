@@ -10,9 +10,14 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("NovaBank")
-            ?? throw new InvalidOperationException(
+        var connectionString = configuration.GetConnectionString("NovaBank");
+
+        // Boş değer de eksik sayılır; hata ilk istekte değil, başlangıçta görülür.
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
                 "ConnectionStrings:NovaBank bağlantı ayarı bulunamadı.");
+        }
 
         services.AddDbContext<NovaBankDbContext>(options => options.UseNpgsql(connectionString));
 
