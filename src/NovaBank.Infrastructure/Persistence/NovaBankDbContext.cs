@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using NovaBank.Domain.Accounts;
 using NovaBank.Domain.Customers;
 
 namespace NovaBank.Infrastructure.Persistence;
@@ -7,6 +8,7 @@ public sealed class NovaBankDbContext(DbContextOptions<NovaBankDbContext> option
     : DbContext(options)
 {
     public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<Account> Accounts => Set<Account>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

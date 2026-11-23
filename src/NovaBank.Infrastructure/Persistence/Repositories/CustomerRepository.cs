@@ -29,6 +29,9 @@ public sealed class CustomerRepository(NovaBankDbContext context) : ICustomerRep
     public Task<Customer?> FindAsync(Guid id, CancellationToken cancellationToken) =>
         context.Customers.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
+    public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken) =>
+        context.Customers.AnyAsync(x => x.Id == id, cancellationToken);
+
     public Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken) =>
         context.Customers.AnyAsync(x => x.Email == email, cancellationToken);
 }

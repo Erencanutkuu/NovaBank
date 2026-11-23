@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NovaBank.Application.Accounts;
 using NovaBank.Application.Customers;
 using NovaBank.Infrastructure.Persistence;
 using NovaBank.Infrastructure.Persistence.Repositories;
@@ -23,6 +24,7 @@ public static class DependencyInjection
 
         services.AddDbContext<NovaBankDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<IAccountRepository, AccountRepository>();
 
         return services;
     }

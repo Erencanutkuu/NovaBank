@@ -21,6 +21,9 @@ public sealed class AccountConfiguration : IEntityTypeConfiguration<Account>
         builder.Property(x => x.OpenedAt).HasColumnName("opened_at");
         builder.Property(x => x.ClosedAt).HasColumnName("closed_at");
 
+        // PostgreSQL'in her güncellemede değişen gizli sütunu; eşzamanlı değişikliği yakalar.
+        builder.Property<uint>("xmin").IsRowVersion();
+
         builder.HasIndex(x => x.Iban).IsUnique().HasDatabaseName("ix_accounts_iban");
         builder.HasIndex(x => x.CustomerId).HasDatabaseName("ix_accounts_customer_id");
 
