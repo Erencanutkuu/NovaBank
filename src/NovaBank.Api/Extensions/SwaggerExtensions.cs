@@ -4,13 +4,20 @@ public static class SwaggerExtensions
 {
     public static IServiceCollection AddApiDocumentation(this IServiceCollection services)
     {
-        // TODO: Swagger paketini ekledikten sonra OpenAPI servislerini kaydet.
+        services.AddEndpointsApiExplorer();
+        services.AddSwaggerGen();
+
         return services;
     }
 
     public static WebApplication UseApiDocumentation(this WebApplication app)
     {
-        // TODO: Development ortamında OpenAPI belgesini ve Swagger UI'ı aç.
+        if (app.Environment.IsDevelopment())  //microsoft kullanım şekli
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+
         return app;
     }
 }

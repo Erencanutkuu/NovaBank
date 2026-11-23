@@ -9,7 +9,7 @@
 | NovaBank.Application | Kullanım senaryoları, servis arayüzleri ve DTO'lar. Domain'e bağımlıdır. |
 | NovaBank.Infrastructure | Veritabanı erişimi ve dış servis entegrasyonları. Application ve Domain'e bağımlıdır. |
 
-API, Application ve Infrastructure projelerine referans verir. PostgreSQL erişimi EF Core ile Infrastructure katmanında yapılandırılmıştır. Henüz iş varlığı veya endpoint eklenmemiştir.
+API, Application ve Infrastructure projelerine referans verir. PostgreSQL erişimi EF Core ile Infrastructure katmanında yapılandırılmıştır. Henüz iş varlığı veya iş endpoint'i eklenmemiştir.
 
 ## EF Core ve migration nedir?
 
@@ -42,6 +42,48 @@ export ConnectionStrings__NovaBank='Host=localhost;Port=5433;Database=novabank;U
 ```
 
 Development dışındaki ortamlarda `ConnectionStrings__NovaBank` veya eşdeğer bir güvenli yapılandırma sağlanmalıdır. API başlatılırken migration otomatik uygulanmaz; yukarıdaki `database update` komutuyla açıkça uygulanır.
+
+## Adresler
+
+| Adres | Açıklama |
+| --- | --- |
+| `/health`, `/health/live` | API ayakta mı? Veritabanını kontrol etmez. |
+| `/health/ready` | PostgreSQL'e erişilebiliyor mu? Erişilemezse `503`. |
+| `/swagger/index.html` | Yalnızca Development ortamında. |
+
+## Cevap ve hata biçimi
+
+- Başarı: `{ data, message?, traceId }`. Controller'lar `ApiControllerBase` yardımcılarını kullanır.
+- Hata: `ProblemDetails` + `errorCode` + `traceId`.
+- Doğrulama hatası: `400`, `errorCode: "7000"` ve `errors: { "alan": ["mesaj"] }`. Bozuk JSON ve yanlış tipli alanlar da aynı gövdeyle döner.
+
+Yeni validator'ı Application'a `AbstractValidator<T>` olarak ekle; `AddApplication` otomatik kaydeder. Action içinde iş işleminden önce çağır:
+
+```csharp
+await validator.ValidateAndThrowAsync(request, cancellationToken);
+```
+
+## Loglama
+
+Serilog ayarları `appsettings.json` içindeki `Serilog` bölümündedir. Her istek için method, path, status ve süre yazılır; `RequestId`, cevaptaki `traceId` ile aynıdır. Sorgu dizesi, gövde ve header'lar loglanmaz. Beklenmeyen hatayı `GlobalExceptionHandler` bir kez Error olarak loglar; iş ve doğrulama hataları stack trace olmadan Information seviyesindedir.
+
+## Testler
+
+```sh
+dotnet test NovaBank.sln
+```
+
+Docker çalışmalıdır: PostgreSQL testleri geçici bir container açar, geliştirme veritabanına dokunmaz.
+
+## Production ortamında çalıştırma
+
+```sh
+export ASPNETCORE_ENVIRONMENT=Production
+export ConnectionStrings__NovaBank='Host=...;Database=...;Username=...;Password=...'
+dotnet run --project src/NovaBank.Api --no-launch-profile
+```
+
+Bağlantı ayarı yoksa veya boşsa uygulama başlamaz. Bu komut ortam davranışını kontrol eder; HTTPS, secret yönetimi, `AllowedHosts` ve yayınlama düzeni henüz kurulmamıştır.
 
 ## Model değiştirince
 
