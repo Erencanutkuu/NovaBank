@@ -1,5 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using NovaBank.Application.Customers;
 
 namespace NovaBank.Application;
 
@@ -9,6 +11,9 @@ public static class DependencyInjection
     {
         // Bu projedeki tüm AbstractValidator<T> sınıflarını IValidator<T> olarak kaydeder.
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddScoped<CustomerService>();
 
         return services;
     }
