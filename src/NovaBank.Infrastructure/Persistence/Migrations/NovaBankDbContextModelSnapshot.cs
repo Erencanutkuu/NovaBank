@@ -78,7 +78,61 @@ namespace NovaBank.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_accounts_iban");
 
-                    b.ToTable("accounts", (string)null);
+                    b.ToTable("accounts", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_accounts_balance", "balance >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("NovaBank.Domain.Accounts.AccountTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<decimal>("BalanceAfter")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("balance_after");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<long>("Sequence")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("sequence");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<long>("Sequence"));
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId", "Sequence")
+                        .IsUnique()
+                        .HasDatabaseName("ix_account_transactions_account_id_sequence");
+
+                    b.ToTable("account_transactions", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_account_transactions_amount", "amount > 0");
+
+                            t.HasCheckConstraint("ck_account_transactions_balance_after", "balance_after >= 0");
+                        });
                 });
 
             modelBuilder.Entity("NovaBank.Domain.Customers.Customer", b =>
@@ -123,6 +177,15 @@ namespace NovaBank.Infrastructure.Persistence.Migrations
                     b.HasOne("NovaBank.Domain.Customers.Customer", null)
                         .WithMany()
                         .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NovaBank.Domain.Accounts.AccountTransaction", b =>
+                {
+                    b.HasOne("NovaBank.Domain.Accounts.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

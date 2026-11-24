@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NovaBank.Application.Accounts;
 using NovaBank.Application.Customers;
+using NovaBank.Application.Transactions;
 
 namespace NovaBank.Application;
 
@@ -16,6 +17,7 @@ public static class DependencyInjection
         services.TryAddSingleton(TimeProvider.System);
         services.AddScoped<CustomerService>();
         services.AddScoped<AccountService>();
+        services.AddScoped<TransactionService>();
 
         return services;
     }

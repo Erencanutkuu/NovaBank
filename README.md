@@ -9,7 +9,7 @@
 | NovaBank.Application | Kullanım senaryoları, servis arayüzleri ve DTO'lar. Domain'e bağımlıdır. |
 | NovaBank.Infrastructure | Veritabanı erişimi ve dış servis entegrasyonları. Application ve Domain'e bağımlıdır. |
 
-API, Application ve Infrastructure projelerine referans verir. PostgreSQL erişimi EF Core ile Infrastructure katmanında yapılandırılmıştır. Müşteri ve hesap endpoint'leri vardır; para hareketi ve login henüz yoktur.
+API, Application ve Infrastructure projelerine referans verir. PostgreSQL erişimi EF Core ile Infrastructure katmanında yapılandırılmıştır. Müşteri, hesap ve para yatırma/çekme endpoint'leri vardır; havale ve login henüz yoktur.
 
 > **Uyarı:** Kimlik doğrulama olmadığı için API yalnızca yerelde çalıştırılmalı, internete açılmamalıdır.
 
@@ -19,7 +19,7 @@ API, Application ve Infrastructure projelerine referans verir. PostgreSQL erişi
 
 **Migration**, C# modelindeki şema değişikliklerini veritabanına uygulayan sürümlü bir dosyadır. `Up` değişikliği uygular, `Down` geri alır. Migration oluşturmak dosya üretir; `database update` bu dosyaları veritabanında çalıştırır.
 
-İlk migration `InitialCreate`, `src/NovaBank.Infrastructure/Persistence/Migrations` altındadır. O sırada entity olmadığı için `Up` ve `Down` boştur. `AddCustomersAndAccounts` ise `customers` ve `accounts` tablolarını oluşturur.
+İlk migration `InitialCreate`, `src/NovaBank.Infrastructure/Persistence/Migrations` altındadır. O sırada entity olmadığı için `Up` ve `Down` boştur. `AddCustomersAndAccounts` ise `customers` ve `accounts`, `AddAccountTransactions` ise `account_transactions` tablosunu oluşturur.
 
 ## Yerel kurulum
 
@@ -57,7 +57,10 @@ Development dışındaki ortamlarda `ConnectionStrings__NovaBank` veya eşdeğer
 | `POST /api/customers/{customerId}/accounts` | Hesap açar: `currency` = `TRY`, `USD` veya `EUR`. |
 | `GET /api/customers/{customerId}/accounts` | Müşterinin hesaplarını listeler. |
 | `GET /api/accounts/{id}` | Hesabı getirir. |
-| `POST /api/accounts/{id}/close` | Hesabı kapatır; geri açılamaz. |
+| `POST /api/accounts/{id}/close` | Hesabı kapatır; bakiye 0 olmalıdır, geri açılamaz. |
+| `POST /api/accounts/{id}/deposit` | Para yatırır: `amount` (0'dan büyük, en çok 1.000.000, en çok 2 ondalık). |
+| `POST /api/accounts/{id}/withdraw` | Para çeker: `amount`. |
+| `GET /api/accounts/{id}/transactions` | Hareketleri en yeniden eskiye listeler: `page` (1), `pageSize` (20, en çok 100). |
 
 ## Cevap ve hata biçimi
 
@@ -70,8 +73,10 @@ Development dışındaki ortamlarda `ConnectionStrings__NovaBank` veya eşdeğer
 | `7000` | 400 | Doğrulama hatası |
 | `7232` | 404 | Müşteri bulunamadı |
 | `7233` | 409 | E-posta kayıtlı |
+| `7555` | 409 | Bakiye yetersiz |
 | `7556` | 409 | Hesap kapalı |
 | `7557` | 404 | Hesap bulunamadı |
+| `7558` | 409 | Bakiyesi olan hesap kapatılamaz |
 | `9000` | 500 | Beklenmeyen hata |
 
 IBAN'lar kurgusal `99999` banka koduyla üretilir; gerçek bir bankaya ait değildir.
@@ -81,6 +86,12 @@ Yeni validator'ı Application'a `AbstractValidator<T>` olarak ekle; `AddApplicat
 ```csharp
 await validator.ValidateAndThrowAsync(request, cancellationToken);
 ```
+
+## Para hareketleri
+
+Hesabın bakiyesi ve hareket kaydı tek veritabanı işleminde yazılır. Hesabı değiştiren her işlem `IUnitOfWork.BeginAsync` ile başlar ve hesabı `FindForUpdateAsync` ile kilitleyerek okur; aynı hesaba aynı anda gelen istekler sırayla çalışır. `account_transactions` satırları değiştirilemez ve silinemez (veritabanı tetikleyicisi).
+
+Tekrar isteği koruması henüz yoktur: istemci aynı isteği iki kez gönderirse iki hareket oluşur.
 
 ## Loglama
 

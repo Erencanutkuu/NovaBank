@@ -7,6 +7,7 @@ namespace NovaBank.Application.Accounts;
 public sealed class AccountService(
     IAccountRepository accounts,
     ICustomerRepository customers,
+    IUnitOfWork unitOfWork,
     TimeProvider timeProvider)
 {
     public async Task<AccountDto> OpenAsync(
@@ -36,14 +37,22 @@ public sealed class AccountService(
 
     public async Task<AccountDto> CloseAsync(Guid id, CancellationToken cancellationToken)
     {
-        var account = await FindAsync(id, cancellationToken);
+        await using var work = await unitOfWork.BeginAsync(cancellationToken);
 
-        // Bugün hesabı değiştiren tek işlem kapatma. Çakışma varsa hesabı başka bir istek kapatmıştır.
-        if (!account.Close(timeProvider.GetUtcNowInMicroseconds()) ||
-            !await accounts.TrySaveChangesAsync(cancellationToken))
+        // Kilit sayesinde bakiye kontrolü ile kapatma arasına başka bir para hareketi giremez.
+        var account = await accounts.FindForUpdateAsync(id, cancellationToken) ?? throw AccountErrors.NotFound();
+
+        if (account.Balance != 0m)
+        {
+            throw AccountErrors.HasBalance();
+        }
+
+        if (!account.Close(timeProvider.GetUtcNowInMicroseconds()))
         {
             throw AccountErrors.Closed();
         }
+
+        await work.CommitAsync(cancellationToken);
 
         return AccountDto.From(account);
     }

@@ -9,6 +9,7 @@ public sealed class NovaBankDbContext(DbContextOptions<NovaBankDbContext> option
 {
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Account> Accounts => Set<Account>();
+    public DbSet<AccountTransaction> AccountTransactions => Set<AccountTransaction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
