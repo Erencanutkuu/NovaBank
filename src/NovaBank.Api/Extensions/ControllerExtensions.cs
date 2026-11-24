@@ -16,6 +16,12 @@ public static class ControllerExtensions
                 options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
                 options.ModelBindingMessageProvider.SetMissingRequestBodyRequiredValueAccessor(
                     () => "İstek gövdesi zorunludur.");
+
+                // Sorgu parametresi yanlış tipteyse (ör. page=abc) MVC'nin İngilizce mesajı yerine kullanılır.
+                options.ModelBindingMessageProvider.SetAttemptedValueIsInvalidAccessor(
+                    (_, _) => InvalidValueMessage);
+                options.ModelBindingMessageProvider.SetNonPropertyAttemptedValueIsInvalidAccessor(
+                    _ => InvalidValueMessage);
             })
             .ConfigureApiBehaviorOptions(options =>
                 options.InvalidModelStateResponseFactory = CreateInvalidModelStateResponse);

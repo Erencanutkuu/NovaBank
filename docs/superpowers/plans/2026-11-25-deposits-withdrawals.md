@@ -28,18 +28,18 @@
 - `AccountTransaction` / `AccountTransactionType { Deposit, Withdrawal }`.
 - `AccountTransaction Account.Deposit(decimal, DateTimeOffset)`, `AccountTransaction? Account.Withdraw(decimal, DateTimeOffset)`, `const decimal Account.MaxTransactionAmount = 1_000_000m`, `const int Account.AmountScale = 2`.
 - `Close` bakiye varken `InvalidOperationException`.
-- [ ] Kırmızı testler → kod → yeşil
+- [x] Kırmızı testler → kod → yeşil
 
 ### Task 2: Yatırma, çekme, listeleme
 - `IUnitOfWork.BeginAsync(ct) : IUnitOfWorkTransaction`; `IUnitOfWorkTransaction : IAsyncDisposable { CommitAsync(ct) }` (kaydeder ve onaylar).
 - `IAccountRepository.FindForUpdateAsync(id, ct)`, `ITransactionRepository { Add, ListAsync(accountId, skip, take, ct), CountAsync }`.
 - `TransactionService { DepositAsync, WithdrawAsync, ListAsync }`, `PagedResult<T>`, `MoveMoneyRequest(decimal Amount)`, `ListTransactionsRequest(Page, PageSize)`.
 - Migration `AddAccountTransactions`: tablo, CHECK'ler, değişikliği engelleyen tetikleyici.
-- [ ] Kırmızı testler → kod → yeşil
+- [x] Kırmızı testler → kod → yeşil
 
 ### Task 3: Kapatma kuralı
 - `ErrorCodes.AccountHasBalance = "7558"` → 409. `CloseAsync` kilitle çalışır; `TrySaveChangesAsync` kalkar.
-- [ ] Kırmızı testler → kod → yeşil → commit
+- [x] Kırmızı testler → kod → yeşil → commit
 
 ### Task 4: README, uçtan uca çalıştırma, son gözden geçirme
-- [ ] README, migration, gerçek çalıştırma, tüm testler, push
+- [x] README, migration, gerçek çalıştırma, tüm testler, push

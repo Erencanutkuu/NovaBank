@@ -35,6 +35,13 @@ public sealed class DatabaseApiFixture : IAsyncLifetime
         Client = _factory.CreateClient();
     }
 
+    // Testin veritabanına doğrudan bakması gerektiğinde kullanılır.
+    public async Task ExecuteAsync(Func<NovaBankDbContext, Task> action)
+    {
+        using var scope = _factory.Services.CreateScope();
+        await action(scope.ServiceProvider.GetRequiredService<NovaBankDbContext>());
+    }
+
     public async Task DisposeAsync()
     {
         await _baseFactory.DisposeAsync();

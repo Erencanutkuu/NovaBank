@@ -11,6 +11,6 @@ public interface IAccountRepository
     // Açılış sırasıyla döner.
     Task<IReadOnlyList<Account>> ListByCustomerAsync(Guid customerId, CancellationToken cancellationToken);
 
-    // Hesap okunduktan sonra başka bir istek onu değiştirdiyse kaydetmez ve false döner.
-    Task<bool> TrySaveChangesAsync(CancellationToken cancellationToken);
+    // Hesabı, açık IUnitOfWork işlemi bitene kadar kilitleyerek okur. Hesabı değiştiren her işlem bunu kullanır.
+    Task<Account?> FindForUpdateAsync(Guid id, CancellationToken cancellationToken);
 }

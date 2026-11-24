@@ -9,7 +9,8 @@ public sealed class AccountConfiguration : IEntityTypeConfiguration<Account>
 {
     public void Configure(EntityTypeBuilder<Account> builder)
     {
-        builder.ToTable("accounts");
+        builder.ToTable("accounts", table =>
+            table.HasCheckConstraint("ck_accounts_balance", "balance >= 0"));
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).HasColumnName("id").ValueGeneratedNever();
         builder.Property(x => x.CustomerId).HasColumnName("customer_id");

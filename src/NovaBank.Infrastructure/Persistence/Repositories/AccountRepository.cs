@@ -24,16 +24,19 @@ public sealed class AccountRepository(NovaBankDbContext context) : IAccountRepos
             .ThenBy(x => x.Id)
             .ToListAsync(cancellationToken);
 
-    public async Task<bool> TrySaveChangesAsync(CancellationToken cancellationToken)
+    public async Task<Account?> FindForUpdateAsync(Guid id, CancellationToken cancellationToken)
     {
-        try
+        // Kilit yalnızca bir işlem açıkken anlamlıdır; yoksa sorgu biter bitmez bırakılır.
+        if (context.Database.CurrentTransaction is null)
         {
-            await context.SaveChangesAsync(cancellationToken);
-            return true;
+            throw new InvalidOperationException("FindForUpdateAsync için önce IUnitOfWork.BeginAsync çağrılmalıdır.");
         }
-        catch (DbUpdateConcurrencyException)
-        {
-            return false;
-        }
+
+        // EF Core'da karşılığı olmadığı için SQL ile yazıldı. xmin gizli sütundur, "*" içine girmez.
+        var rows = await context.Accounts
+            .FromSql($"SELECT *, xmin FROM accounts WHERE id = {id} FOR UPDATE")
+            .ToListAsync(cancellationToken);
+
+        return rows.SingleOrDefault();
     }
 }
