@@ -9,6 +9,11 @@ public interface ICustomerRepository
 
     Task<Customer?> FindAsync(Guid id, CancellationToken cancellationToken);
 
+    // En yeni müşteri önce gelir.
+    Task<IReadOnlyList<Customer>> ListAsync(int skip, int take, CancellationToken cancellationToken);
+
+    Task<int> CountAsync(CancellationToken cancellationToken);
+
     Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken);
 
     Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken);

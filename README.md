@@ -53,6 +53,7 @@ Development dışındaki ortamlarda `ConnectionStrings__NovaBank` veya eşdeğer
 | `/health/ready` | PostgreSQL'e erişilebiliyor mu? Erişilemezse `503`. |
 | `/swagger/index.html` | Yalnızca Development ortamında. |
 | `POST /api/customers` | Müşteri oluşturur: `firstName`, `lastName`, `email`. |
+| `GET /api/customers` | Müşterileri en yeniden eskiye listeler: `page`, `pageSize`. |
 | `GET /api/customers/{id}` | Müşteriyi getirir. |
 | `POST /api/customers/{customerId}/accounts` | Hesap açar: `currency` = `TRY`, `USD` veya `EUR`. |
 | `GET /api/customers/{customerId}/accounts` | Müşterinin hesaplarını listeler. |

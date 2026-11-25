@@ -10,7 +10,7 @@ namespace NovaBank.Api.Controllers;
 public sealed class TransactionsController(
     TransactionService transactions,
     IValidator<MoveMoneyRequest> moveValidator,
-    IValidator<ListTransactionsRequest> listValidator) : ApiControllerBase
+    IValidator<PageRequest> pageValidator) : ApiControllerBase
 {
     [HttpPost("deposit")]
     [ProducesResponseType<ApiResponse<TransactionDto>>(StatusCodes.Status200OK)]
@@ -43,9 +43,9 @@ public sealed class TransactionsController(
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> List(
-        Guid accountId, [FromQuery] ListTransactionsRequest request, CancellationToken cancellationToken)
+        Guid accountId, [FromQuery] PageRequest request, CancellationToken cancellationToken)
     {
-        await listValidator.ValidateAndThrowAsync(request, cancellationToken);
+        await pageValidator.ValidateAndThrowAsync(request, cancellationToken);
 
         return OkResponse(await transactions.ListAsync(accountId, request, cancellationToken));
     }

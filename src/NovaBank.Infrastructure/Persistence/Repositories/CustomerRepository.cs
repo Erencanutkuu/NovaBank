@@ -29,6 +29,18 @@ public sealed class CustomerRepository(NovaBankDbContext context) : ICustomerRep
     public Task<Customer?> FindAsync(Guid id, CancellationToken cancellationToken) =>
         context.Customers.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
+    public async Task<IReadOnlyList<Customer>> ListAsync(int skip, int take, CancellationToken cancellationToken) =>
+        await context.Customers
+            .AsNoTracking()
+            .OrderByDescending(x => x.CreatedAt)
+            .ThenBy(x => x.Id)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+
+    public Task<int> CountAsync(CancellationToken cancellationToken) =>
+        context.Customers.CountAsync(cancellationToken);
+
     public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken) =>
         context.Customers.AnyAsync(x => x.Id == id, cancellationToken);
 

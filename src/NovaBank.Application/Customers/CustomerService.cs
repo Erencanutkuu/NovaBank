@@ -27,4 +27,13 @@ public sealed class CustomerService(ICustomerRepository customers, TimeProvider 
 
         return CustomerDto.From(customer);
     }
+
+    public async Task<PagedResult<CustomerDto>> ListAsync(PageRequest request, CancellationToken cancellationToken)
+    {
+        var items = await customers.ListAsync(request.GetSkip(), request.PageSize, cancellationToken);
+        var totalCount = await customers.CountAsync(cancellationToken);
+
+        return new PagedResult<CustomerDto>(
+            items.Select(CustomerDto.From).ToList(), request.Page, request.PageSize, totalCount);
+    }
 }

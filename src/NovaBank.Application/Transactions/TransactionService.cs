@@ -19,7 +19,7 @@ public sealed class TransactionService(
         MoveAsync(accountId, (account, now) => account.Withdraw(request.Amount, now), cancellationToken);
 
     public async Task<PagedResult<TransactionDto>> ListAsync(
-        Guid accountId, ListTransactionsRequest request, CancellationToken cancellationToken)
+        Guid accountId, PageRequest request, CancellationToken cancellationToken)
     {
         if (await accounts.FindAsync(accountId, cancellationToken) is null)
         {
@@ -27,7 +27,7 @@ public sealed class TransactionService(
         }
 
         var items = await transactions.ListAsync(
-            accountId, (request.Page - 1) * request.PageSize, request.PageSize, cancellationToken);
+            accountId, request.GetSkip(), request.PageSize, cancellationToken);
         var totalCount = await transactions.CountAsync(accountId, cancellationToken);
 
         return new PagedResult<TransactionDto>(

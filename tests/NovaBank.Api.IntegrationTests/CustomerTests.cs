@@ -105,6 +105,64 @@ public sealed class CustomerTests(DatabaseApiFixture api) : IClassFixture<Databa
         await response.AssertProblemAsync(400, "7000");
     }
 
+    // Diğer testler de müşteri ekler; burada yalnızca bu testin en yeni kayıtlarına bakılır.
+    [Fact]
+    public async Task List_ReturnsNewestFirstWithPaging()
+    {
+        var ids = new List<Guid>();
+        for (var i = 0; i < 3; i++)
+        {
+            ids.Insert(0, (await (await CreateAsync("Eren", "Utku", UniqueEmail())).ReadDataAsync())
+                .GetProperty("id").GetGuid());
+        }
+
+        var first = await (await api.Client.GetAsync("/api/customers?page=1&pageSize=2")).ReadDataAsync();
+        var second = await (await api.Client.GetAsync("/api/customers?page=2&pageSize=2")).ReadDataAsync();
+
+        Assert.Equal(ids.Take(2), Ids(first));
+        Assert.Equal(ids[2], Ids(second)[0]);
+        Assert.Equal(2, second.GetProperty("page").GetInt32());
+        Assert.Equal(2, second.GetProperty("pageSize").GetInt32());
+        Assert.True(first.GetProperty("totalCount").GetInt32() >= 3);
+
+        static Guid[] Ids(JsonElement page) =>
+            page.GetProperty("items").EnumerateArray().Select(x => x.GetProperty("id").GetGuid()).ToArray();
+    }
+
+    [Fact]
+    public async Task List_ItemsMatchCreatedCustomerAndDefaultTo20()
+    {
+        var created = await (await CreateAsync("Işıl", "Çınar", UniqueEmail())).ReadDataAsync();
+
+        var response = await api.Client.GetAsync("/api/customers");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var data = await response.ReadDataAsync();
+        Assert.Equal(20, data.GetProperty("pageSize").GetInt32());
+        Assert.Equal(created.GetRawText(), data.GetProperty("items")[0].GetRawText());
+    }
+
+    [Theory]
+    [InlineData("?page=0", "page", "Sayfa 1 ile 1.000.000 arasında olmalıdır.")]
+    [InlineData("?pageSize=101", "pageSize", "Sayfa boyutu 1 ile 100 arasında olmalıdır.")]
+    [InlineData("?page=abc", "page", "Geçersiz değer.")]
+    public async Task List_WithInvalidPaging_Returns400(string query, string field, string message)
+    {
+        var response = await api.Client.GetAsync($"/api/customers{query}");
+
+        await response.AssertProblemAsync(400, "7000");
+        Assert.Equal([message], (await response.ReadJsonAsync()).GetProperty("errors")
+            .GetProperty(field).EnumerateArray().Select(x => x.GetString()!));
+    }
+
+    [Fact]
+    public async Task List_BeyondLastPage_ReturnsEmpty()
+    {
+        var data = await (await api.Client.GetAsync("/api/customers?page=1000000&pageSize=100")).ReadDataAsync();
+
+        Assert.Equal(0, data.GetProperty("items").GetArrayLength());
+    }
+
     [Fact]
     public async Task Get_UnknownCustomer_Returns404()
     {
@@ -124,6 +182,7 @@ public sealed class CustomerTests(DatabaseApiFixture api) : IClassFixture<Databa
         var created = await CreateAsync("Eren", "Utku", email);
         await CreateAsync("Eren", "Utku", email);
         await api.Client.GetAsync(created.Headers.Location);
+        await api.Client.GetAsync("/api/customers");
         // Yarış: benzersiz index hatası da e-postayı loga taşımamalı.
         var racingEmail = UniqueEmail();
         await Task.WhenAll(Enumerable.Range(0, 10).Select(_ => CreateAsync("Eren", "Utku", racingEmail)));

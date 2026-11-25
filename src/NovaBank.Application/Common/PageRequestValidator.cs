@@ -1,10 +1,10 @@
 using FluentValidation;
 
-namespace NovaBank.Application.Transactions;
+namespace NovaBank.Application.Common;
 
-public sealed class ListTransactionsRequestValidator : AbstractValidator<ListTransactionsRequest>
+public sealed class PageRequestValidator : AbstractValidator<PageRequest>
 {
-    public ListTransactionsRequestValidator()
+    public PageRequestValidator()
     {
         // Üst sınır, atlanacak satır sayısının int'e sığmasını da sağlar.
         RuleFor(x => x.Page)
