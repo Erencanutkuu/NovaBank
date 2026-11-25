@@ -27,15 +27,15 @@
 ### Task 1: `GET /api/customers` — `tests/NovaBank.Api.IntegrationTests/CustomerTests.cs`
 - `ListTransactionsRequest` + validator → ortak `Common/PageRequest(int Page = 1, int PageSize = 20)`, `PageRequestValidator`.
 - `ICustomerRepository.ListAsync(skip, take, ct)`, `CountAsync(ct)`; `CustomerService.ListAsync(PageRequest, ct) : PagedResult<CustomerDto>`; sıra: `CreatedAt` azalan, sonra `Id`.
-- [ ] Kırmızı → yeşil → commit
+- [x] Kırmızı → yeşil → commit
 
 ### Task 2: E2E altyapısı ve müşteriler sayfası
 - `AppFixture`: Postgres, API süreci, `npm run build` + `vite preview` (`NOVABANK_API` ile hedef), Chromium.
-- [ ] Kırmızı → yeşil
+- [x] Kırmızı → yeşil
 
 ### Task 3: Müşteri detayı: hesaplar, para işlemleri, hareketler
 - `parseAmount(text) : number | null`, `formatMoney`, `formatIban`, `formatDate`.
-- [ ] Kırmızı → yeşil
+- [x] Kırmızı → yeşil
 
 ### Task 4: Görsel kontrol (masaüstü + telefon ekran görüntüsü), README, son gözden geçirme
-- [ ] Ekran görüntüleri, tüm testler, commit, push
+- [x] Ekran görüntüleri, tüm testler, commit, push

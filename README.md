@@ -45,6 +45,20 @@ export ConnectionStrings__NovaBank='Host=localhost;Port=5433;Database=novabank;U
 
 Development dışındaki ortamlarda `ConnectionStrings__NovaBank` veya eşdeğer bir güvenli yapılandırma sağlanmalıdır. API başlatılırken migration otomatik uygulanmaz; yukarıdaki `database update` komutuyla açıkça uygulanır.
 
+## Ekran (frontend)
+
+`frontend/` klasöründe React + TypeScript + Vite uygulaması vardır. Node.js 22.12 veya üstü gerekir. API çalışırken ikinci bir terminalde:
+
+```sh
+cd frontend
+npm ci        # yalnızca ilk seferde
+npm run dev
+```
+
+Ekran `http://localhost:5173` adresinde açılır. Vite, `/api` isteklerini `http://localhost:5080` adresindeki API'ye iletir; başka bir adres için `NOVABANK_API` ortam değişkenini ayarla. Frontend'in yayınlanma düzeni henüz kurulmamıştır.
+
+Tutarlar Türkçe yazılır (`1.250,50`). Para isteğinin cevabı gelmezse ekran isteği tekrarlamaz, sonucun belirsiz olduğunu söyler.
+
 ## Adresler
 
 | Adres | Açıklama |
@@ -105,6 +119,13 @@ dotnet test NovaBank.sln
 ```
 
 Docker çalışmalıdır: PostgreSQL testleri geçici bir container açar, geliştirme veritabanına dokunmaz.
+
+Ekran testleri (xUnit + Playwright) ayrı çalışır; Docker ve Node.js ister. Chromium ilk çalıştırmada indirilir. API'yi, frontend'i ve veritabanını kendisi geçici olarak başlatır:
+
+```sh
+npm ci --prefix frontend
+dotnet test tests/NovaBank.E2E.Tests
+```
 
 ## Production ortamında çalıştırma
 
