@@ -56,6 +56,8 @@ public sealed class CustomerPageTests(AppFixture app) : PageTest(app)
     [InlineData(" 1.250,50 ", "1.250,50 TL")]
     [InlineData("1250,5", "1.250,50 TL")]
     [InlineData("0,01", "0,01 TL")]
+    [InlineData("0,02", "0,02 TL")]
+    [InlineData("999.999,99", "999.999,99 TL")]
     [InlineData("1.000.000", "1.000.000,00 TL")]
     public async Task Amount_AcceptsTurkishFormatAndShowsPreview(string text, string expected)
     {
@@ -76,6 +78,7 @@ public sealed class CustomerPageTests(AppFixture app) : PageTest(app)
     [InlineData("1.00", AmountFormatMessage)]
     [InlineData("0.500", AmountFormatMessage)]
     [InlineData("10,555", AmountFormatMessage)]
+    [InlineData("0,009", AmountFormatMessage)]
     [InlineData("1,000.50", AmountFormatMessage)]
     [InlineData("-5", AmountFormatMessage)]
     [InlineData("1e3", AmountFormatMessage)]
@@ -91,6 +94,33 @@ public sealed class CustomerPageTests(AppFixture app) : PageTest(app)
         await Expect(AmountInput).ToHaveAccessibleDescriptionAsync(new Regex(Regex.Escape(message)));
         await Expect(AmountInput).ToBeFocusedAsync();
         Assert.Empty(await App.GetAmountsAsync(accountId));
+    }
+
+    // İkili tabanda 0.1 + 0.2 = 0.30000000000000004 olur; ekranda ve kayıtta kuruş kaymamalı.
+    [Fact]
+    public async Task Cents_AddUpExactly()
+    {
+        await OpenPageAsync();
+
+        await MoveAsync("Para yatır", "0,10");
+        await Expect(Balance).ToHaveTextAsync("0,10 TL");
+        await MoveAsync("Para yatır", "0,20");
+        await Expect(Balance).ToHaveTextAsync("0,30 TL");
+        await MoveAsync("Para çek", "0,30");
+
+        await Expect(Balance).ToHaveTextAsync("0,00 TL");
+    }
+
+    [Theory]
+    [InlineData("99,99", "0,01 TL")]
+    [InlineData("100", "0,00 TL")]
+    public async Task Withdraw_UpToBalance_Succeeds(string amount, string remaining)
+    {
+        await OpenPageAsync(balance: 100);
+
+        await MoveAsync("Para çek", amount);
+
+        await Expect(Balance).ToHaveTextAsync(remaining);
     }
 
     [Fact]
@@ -240,15 +270,53 @@ public sealed class CustomerPageTests(AppFixture app) : PageTest(app)
         await Expect(Button("Hesabı kapat")).ToBeDisabledAsync();
     }
 
+    // Kapatılamayacak hesap için "kapatılacak" denmez; yapılacak iş gösterilir.
     [Fact]
-    public async Task Close_WithBalance_ShowsServerMessage()
+    public async Task Close_WithBalance_LeadsToWithdraw()
     {
         await OpenPageAsync(balance: 0.01m);
         await Button("Hesabı kapat").ClickAsync();
 
+        await Expect(Dialog).ToContainTextAsync("Hesapta 0,01 TL var. Kapatmak için önce bakiyeyi sıfırla.");
+        await Expect(Dialog).Not.ToContainTextAsync("kapatılacak");
+        await Expect(DialogButton("Hesabı kapat")).ToHaveCountAsync(0);
+        await DialogButton("Para çek").ClickAsync();
+
+        await Expect(Dialog.GetByRole(AriaRole.Heading)).ToHaveTextAsync("Para çek");
+        await Expect(AmountInput).ToBeFocusedAsync();
+        await DialogButton("Tümü").ClickAsync();
+        await DialogButton("Para çek").ClickAsync();
+        await Expect(Balance).ToHaveTextAsync("0,00 TL");
+    }
+
+    // Pencere açıkken başka yerden para yatmış: sunucu reddeder, pencere güncel bakiyeyi gösterir.
+    [Fact]
+    public async Task Close_WhenMoneyArrivesMeanwhile_ShowsNewBalance()
+    {
+        var accountId = await OpenPageAsync();
+        await Button("Hesabı kapat").ClickAsync();
+        await App.DepositAsync(accountId, 5);
+
         await DialogButton("Hesabı kapat").ClickAsync();
 
-        await Expect(Dialog.GetByRole(AriaRole.Alert)).ToContainTextAsync("Bakiyesi olan hesap kapatılamaz.");
+        await Expect(Dialog.GetByRole(AriaRole.Alert)).ToContainTextAsync("Hesapta 5,00 TL var.");
+        await Expect(DialogButton("Hesabı kapat")).ToHaveCountAsync(0);
+        await Expect(Cards).ToContainTextAsync("Açık");
+    }
+
+    [Fact]
+    public async Task Close_WhenAlreadyClosed_ShowsOnlyServerMessage()
+    {
+        var accountId = await OpenPageAsync();
+        await Button("Hesabı kapat").ClickAsync();
+        (await App.Api.PostAsync($"/api/accounts/{accountId}/close", null)).EnsureSuccessStatusCode();
+
+        await DialogButton("Hesabı kapat").ClickAsync();
+
+        await Expect(Dialog.GetByRole(AriaRole.Alert)).ToContainTextAsync("Hesap kapalı.");
+        await Expect(Dialog).Not.ToContainTextAsync("kapatılacak");
+        await DialogButton("Tamam").ClickAsync();
+        await Expect(Cards).ToContainTextAsync("Kapalı");
     }
 
     // Hesap başka bir pencerede değişmiş: hata gelince ekran da güncellenir.
@@ -344,13 +412,18 @@ public sealed class CustomerPageTests(AppFixture app) : PageTest(app)
     [Fact]
     public async Task CopyIban_PutsPlainIbanOnClipboard()
     {
+        // Pano izinleri her tarayıcıda farklıdır; panoya yazılan değer burada yakalanır.
+        await Page.AddInitScriptAsync("""
+            Object.defineProperty(navigator, 'clipboard', {
+              value: { writeText: async text => { window.copied = text } }
+            })
+            """);
         await OpenPageAsync();
-        await Page.Context.GrantPermissionsAsync(["clipboard-read", "clipboard-write"]);
 
         await Button("IBAN'ı kopyala").ClickAsync();
 
         await Expect(Page.GetByRole(AriaRole.Status)).ToContainTextAsync("IBAN kopyalandı.");
-        Assert.Matches(@"^TR\d{24}$", await Page.EvaluateAsync<string>("navigator.clipboard.readText()"));
+        Assert.Matches(@"^TR\d{24}$", await Page.EvaluateAsync<string>("window.copied"));
     }
 
     [Fact]

@@ -127,6 +127,8 @@ npm ci --prefix frontend
 dotnet test tests/NovaBank.E2E.Tests
 ```
 
+Safari motoru için `NOVABANK_BROWSER=webkit`, Firefox için `NOVABANK_BROWSER=firefox` ortam değişkenini ayarla.
+
 ## Production ortamında çalıştırma
 
 ```sh

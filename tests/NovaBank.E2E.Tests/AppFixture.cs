@@ -16,7 +16,7 @@ public sealed class AppCollection : ICollectionFixture<AppFixture>
     public const string Name = "app";
 }
 
-// Gerçek uygulamayı başlatır: geçici PostgreSQL + API süreci + derlenmiş frontend + Chromium.
+// Gerçek uygulamayı başlatır: geçici PostgreSQL + API süreci + derlenmiş frontend + tarayıcı.
 // Geliştirme veritabanına ve 5080/5173 portlarına dokunmaz.
 public sealed class AppFixture : IAsyncLifetime
 {
@@ -66,10 +66,11 @@ public sealed class AppFixture : IAsyncLifetime
         await WaitAsync($"{apiUrl}/health/ready");
         await WaitAsync(BaseUrl);
 
-        // Tarayıcı kuruluysa hemen döner.
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
+        // chromium (varsayılan), webkit (Safari) veya firefox. Tarayıcı kuruluysa install hemen döner.
+        var browser = Environment.GetEnvironmentVariable("NOVABANK_BROWSER") ?? "chromium";
+        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", browser]));
         _playwright = await Playwright.CreateAsync();
-        Browser = await _playwright.Chromium.LaunchAsync();
+        Browser = await _playwright[browser].LaunchAsync();
     }
 
     public async Task DisposeAsync()

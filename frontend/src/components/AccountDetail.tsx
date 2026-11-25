@@ -121,6 +121,7 @@ export function AccountDetail({ account, onChanged }: Props) {
           onClose={() => setDialog(null)}
           onClosed={() => finish('Hesap kapatıldı.')}
           onFailed={refresh}
+          onWithdraw={() => setDialog('withdraw')}
         />
       )}
     </section>
